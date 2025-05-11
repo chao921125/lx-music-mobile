@@ -10,14 +10,14 @@ import CheckBoxItem from '../../components/CheckBoxItem'
 
 export default memo(() => {
   const t = useI18n()
-  const isPlayHighQuality = useSettingValue('player.isPlayHighQuality')
-  const setPlayHighQuality = (isPlayHighQuality: boolean) => {
-    updateSetting({ 'player.isPlayHighQuality': isPlayHighQuality })
+  const startupPushPlayDetailScreen = useSettingValue('player.startupPushPlayDetailScreen')
+  const setStartupPushPlayDetailScreen = (startupPushPlayDetailScreen: boolean) => {
+    updateSetting({ 'player.startupPushPlayDetailScreen': startupPushPlayDetailScreen })
   }
 
   return (
     <View style={styles.content}>
-      <CheckBoxItem check={isPlayHighQuality} onChange={setPlayHighQuality} label={t('setting_play_quality')} />
+      <CheckBoxItem check={startupPushPlayDetailScreen} label={t('setting_basic_startup_push_play_detail_screen')} onChange={setStartupPushPlayDetailScreen} />
     </View>
   )
 })
@@ -26,6 +26,6 @@ export default memo(() => {
 const styles = createStyle({
   content: {
     marginTop: 5,
+    // marginBottom: 15,
   },
 })
-

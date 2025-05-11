@@ -377,7 +377,7 @@ globalThis.lx_setup = (key, id, name, description, version, author, homepage, ra
       },
       md5(str) {
         if (typeof str !== 'string') throw new Error('param required a string')
-        const md5 = nativeFuncs.utils_str2md5(str)
+        const md5 = nativeFuncs.utils_str2md5(encodeURIComponent(str))
         // console.log('md5', str, md5)
         return md5
       },
@@ -545,9 +545,25 @@ globalThis.lx_setup = (key, id, name, description, version, author, homepage, ra
   globalThis.eval = function() {
     throw new Error('eval is not available')
   }
-  globalThis.Function = function() {
-    throw new Error('Function is not available')
-  }
+  const proxyFunctionConstructor = new Proxy(Function.prototype.constructor, {
+    apply() {
+      throw new Error('Dynamic code execution is not allowed.')
+    },
+    construct() {
+      throw new Error('Dynamic code execution is not allowed.')
+    },
+  })
+  // eslint-disable-next-line no-extend-native
+  Object.defineProperty(Function.prototype, 'constructor', {
+    value: proxyFunctionConstructor,
+    writable: false,
+    configurable: false,
+    enumerable: false,
+  })
+  globalThis.Function = proxyFunctionConstructor
+  // globalThis.Function = function() {
+  //   throw new Error('Function is not available')
+  // }
 
   const excludes = [
     Function.prototype.toString,

@@ -87,8 +87,12 @@ export const handleImportListPart = async(listData: LX.ConfigFile.MyListInfoPart
     })
     if (confirm) {
       listData.name = targetList.name
-      void overwriteList(listData)
-      toast(global.i18n.t('setting_backup_part_import_list_tip_success'))
+      void overwriteList(listData).then(() => {
+        toast(global.i18n.t('setting_backup_part_import_list_tip_success'))
+      }).catch((err) => {
+        log.error(err)
+        toast(global.i18n.t('setting_backup_part_import_list_tip_error'))
+      })
       return
     }
     listData.id += `__${Date.now()}`
@@ -103,7 +107,8 @@ export const handleImportListPart = async(listData: LX.ConfigFile.MyListInfoPart
     position: Math.max(position, -1),
   }).then(() => {
     toast(global.i18n.t('setting_backup_part_import_list_tip_success'))
-  }).catch(() => {
+  }).catch((err) => {
+    log.error(err)
     toast(global.i18n.t('setting_backup_part_import_list_tip_error'))
   })
 }
@@ -160,7 +165,8 @@ export const handleImportList = (path: string) => {
   void importPlayList(path).then((skipTip) => {
     if (skipTip) return
     toast(global.i18n.t('setting_backup_part_import_list_tip_success'))
-  }).catch(() => {
+  }).catch((err) => {
+    log.error(err)
     toast(global.i18n.t('setting_backup_part_import_list_tip_error'))
   })
 }

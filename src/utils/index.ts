@@ -1,4 +1,5 @@
 import { dateFormat } from './common'
+import he from 'he'
 
 export { tranditionalize as langS2T } from '@/utils/simplify-chinese-main'
 
@@ -30,6 +31,14 @@ export const toNewMusicInfo = (oldMusicInfo: any): LX.Music.MusicInfo => {
     albumName: oldMusicInfo.albumName, // 歌曲专辑名称
     picUrl: oldMusicInfo.img, // 歌曲图片链接
   }
+  const newInfo = {
+    id: `${oldMusicInfo.source as string}_${oldMusicInfo.songmid as string}`,
+    name: oldMusicInfo.name,
+    singer: oldMusicInfo.singer,
+    source: oldMusicInfo.source,
+    interval: oldMusicInfo.interval,
+    meta: meta as LX.Music.MusicInfoOnline['meta'],
+  }
 
   if (oldMusicInfo.source == 'local') {
     meta.filePath = oldMusicInfo.filePath ?? oldMusicInfo.songmid ?? ''
@@ -51,6 +60,7 @@ export const toNewMusicInfo = (oldMusicInfo: any): LX.Music.MusicInfo => {
     switch (oldMusicInfo.source) {
       case 'kg':
         meta.hash = oldMusicInfo.hash
+        newInfo.id = oldMusicInfo.songmid + '_' + oldMusicInfo.hash
         break
       case 'tx':
         meta.strMediaMid = oldMusicInfo.strMediaMid
@@ -66,14 +76,7 @@ export const toNewMusicInfo = (oldMusicInfo: any): LX.Music.MusicInfo => {
     }
   }
 
-  return {
-    id: `${oldMusicInfo.source as string}_${oldMusicInfo.songmid as string}`,
-    name: oldMusicInfo.name,
-    singer: oldMusicInfo.singer,
-    source: oldMusicInfo.source,
-    interval: oldMusicInfo.interval,
-    meta: meta as LX.Music.MusicInfoOnline['meta'],
-  }
+  return newInfo
 }
 
 export const toOldMusicInfo = (minfo: LX.Music.MusicInfo): any => {
@@ -189,4 +192,9 @@ export const formatPlayCount = (num: number): string => {
   if (num > 100000000) return `${Math.trunc(num / 10000000) / 10}亿`
   if (num > 10000) return `${Math.trunc(num / 1000) / 10}万`
   return String(num)
+}
+
+export const decodeName = (str: string | null = '') => {
+  if (!str) return ''
+  return he.decode(str)
 }

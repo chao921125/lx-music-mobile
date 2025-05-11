@@ -1,7 +1,7 @@
 import musicSdk, { findMusic } from '@/utils/musicSdk'
 import {
-  getOtherSource as getOtherSourceFromStore,
-  saveOtherSource as saveOtherSourceFromStore,
+  // getOtherSource as getOtherSourceFromStore,
+  // saveOtherSource as saveOtherSourceFromStore,
   getMusicUrl as getStoreMusicUrl,
   getPlayerLyric as getStoreLyric,
 } from '@/utils/data'
@@ -15,12 +15,14 @@ import { apis } from '@/utils/musicSdk/api-source'
 
 const getOtherSourcePromises = new Map()
 export const existTimeExp = /\[\d{1,2}:.*\d{1,4}\]/
+const otherSourceCache = new Map<LX.Music.MusicInfo | LX.Download.ListItem, LX.Music.MusicInfoOnline[]>()
 
 export const getOtherSource = async(musicInfo: LX.Music.MusicInfo | LX.Download.ListItem, isRefresh = false): Promise<LX.Music.MusicInfoOnline[]> => {
-  if (!isRefresh) {
-    const cachedInfo = await getOtherSourceFromStore(musicInfo.id)
-    if (cachedInfo.length) return cachedInfo
-  }
+  // if (!isRefresh) {
+  //   const cachedInfo = await getOtherSourceFromStore(musicInfo.id)
+  //   if (cachedInfo.length) return cachedInfo
+  // }
+  if (otherSourceCache.has(musicInfo)) return otherSourceCache.get(musicInfo)!
   let key: string
   let searchMusicInfo: {
     name: string
@@ -54,14 +56,17 @@ export const getOtherSource = async(musicInfo: LX.Music.MusicInfo | LX.Download.
     let timeout: null | number = BackgroundTimer.setTimeout(() => {
       timeout = null
       reject(new Error('find music timeout'))
-    }, 15_000)
+    }, 12_000)
     findMusic(searchMusicInfo).then((otherSource) => {
-      resolve(otherSource.map(toNewMusicInfo) as LX.Music.MusicInfoOnline[])
+      if (otherSourceCache.size > 10) otherSourceCache.clear()
+      const source = otherSource.map(toNewMusicInfo) as LX.Music.MusicInfoOnline[]
+      otherSourceCache.set(musicInfo, source)
+      resolve(source)
     }).catch(reject).finally(() => {
       if (timeout) BackgroundTimer.clearTimeout(timeout)
     })
   }).then((otherSource) => {
-    if (otherSource.length) void saveOtherSourceFromStore(musicInfo.id, otherSource)
+    // if (otherSource.length) void saveOtherSourceFromStore(musicInfo.id, otherSource)
     return otherSource
   }).finally(() => {
     if (getOtherSourcePromises.has(key)) getOtherSourcePromises.delete(key)
@@ -208,10 +213,19 @@ export const getOnlineOtherSourcePicByLocal = async(musicInfo: LX.Music.MusicInf
   })
 }
 
-export const getPlayQuality = (highQuality: boolean, musicInfo: LX.Music.MusicInfoOnline): LX.Quality => {
+export const TRY_QUALITYS_LIST = ['flac24bit', 'flac', '320k'] as const
+type TryQualityType = typeof TRY_QUALITYS_LIST[number]
+export const getPlayQuality = (highQuality: LX.Quality, musicInfo: LX.Music.MusicInfoOnline): LX.Quality => {
   let type: LX.Quality = '128k'
-  let list = global.lx.qualityList[musicInfo.source]
-  if (highQuality && musicInfo.meta._qualitys['320k'] && list && list.includes('320k')) type = '320k'
+  if (TRY_QUALITYS_LIST.includes(highQuality as TryQualityType)) {
+    let list = global.lx.qualityList[musicInfo.source]
+
+    let t = TRY_QUALITYS_LIST
+      .slice(TRY_QUALITYS_LIST.indexOf(highQuality as TryQualityType))
+      .find(q => musicInfo.meta._qualitys[q] && list?.includes(q))
+
+    if (t) type = t
+  }
   return type
 }
 
@@ -236,7 +250,7 @@ export const getOnlineOtherSourceMusicUrl = async({ musicInfos, quality, onToggl
     if (retryedSource.includes(musicInfo.source)) continue
     retryedSource.push(musicInfo.source)
     if (!assertApiSupport(musicInfo.source)) continue
-    itemQuality = quality ?? getPlayQuality(settingState.setting['player.isPlayHighQuality'], musicInfo)
+    itemQuality = quality ?? getPlayQuality(settingState.setting['player.playQuality'], musicInfo)
     if (!musicInfo.meta._qualitys[itemQuality]) continue
 
     console.log('try toggle to: ', musicInfo.source, musicInfo.name, musicInfo.singer, musicInfo.interval)
@@ -283,7 +297,7 @@ export const handleGetOnlineMusicUrl = async({ musicInfo, quality, onToggleSourc
 }> => {
   if (!await global.lx.apiInitPromise[0]) throw new Error('source init failed')
   // console.log(musicInfo.source)
-  const targetQuality = quality ?? getPlayQuality(settingState.setting['player.isPlayHighQuality'], musicInfo)
+  const targetQuality = quality ?? getPlayQuality(settingState.setting['player.playQuality'], musicInfo)
 
   let reqPromise
   try {

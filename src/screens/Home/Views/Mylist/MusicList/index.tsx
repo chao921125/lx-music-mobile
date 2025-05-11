@@ -2,7 +2,7 @@ import { useCallback, useRef } from 'react'
 
 import listState from '@/store/list/state'
 import ListMenu, { type ListMenuType, type Position, type SelectInfo } from './ListMenu'
-import { handleDislikeMusic, handlePlay, handlePlayLater, handleRemove, handleShare, handleUpdateMusicInfo, handleUpdateMusicPosition } from './listAction'
+import { handleDislikeMusic, handlePlay, handlePlayLater, handleRemove, handleShare, handleShowMusicSourceDetail, handleUpdateMusicInfo, handleUpdateMusicPosition } from './listAction'
 import List, { type ListType } from './List'
 import ListMusicAdd, { type MusicAddModalType as ListMusicAddType } from '@/components/MusicAddModal'
 import ListMusicMultiAdd, { type MusicMultiAddModalType as ListAddMultiType } from '@/components/MusicMultiAddModal'
@@ -14,6 +14,7 @@ import ListSearchBar, { type ListSearchBarType } from './ListSearchBar'
 import ListMusicSearch, { type ListMusicSearchType } from './ListMusicSearch'
 import MusicPositionModal, { type MusicPositionModalType } from './MusicPositionModal'
 import MetadataEditModal, { type MetadataEditType, type MetadataEditProps } from '@/components/MetadataEditModal'
+import MusicToggleModal, { type MusicToggleModalType } from './MusicToggleModal'
 
 
 export default () => {
@@ -28,6 +29,7 @@ export default () => {
   const musicPositionModalRef = useRef<MusicPositionModalType>(null)
   const metadataEditTypeRef = useRef<MetadataEditType>(null)
   const listMenuRef = useRef<ListMenuType>(null)
+  const musicToggleModalRef = useRef<MusicToggleModalType>(null)
   const layoutHeightRef = useRef<number>(0)
   const isShowMultipleModeBar = useRef(false)
   const isShowSearchBarModeBar = useRef(false)
@@ -87,7 +89,7 @@ export default () => {
   const handleScrollToInfo = useCallback((info: LX.Music.MusicInfo) => {
     listRef.current?.scrollToInfo(info)
     handleExitSearch()
-  }, [])
+  }, [handleExitSearch])
   const onLayout = useCallback((e: LayoutChangeEvent) => {
     layoutHeightRef.current = e.nativeEvent.layout.height
   }, [])
@@ -145,8 +147,8 @@ export default () => {
           onScrollToInfo={handleScrollToInfo}
         />
       </View>
-      <ListMusicAdd ref={listMusicAddRef} onAdded={() => { hancelExitSelect() }} />
-      <ListMusicMultiAdd ref={listMusicMultiAddRef} onAdded={() => { hancelExitSelect() }} />
+      <ListMusicAdd ref={listMusicAddRef} onAdded={hancelExitSelect} />
+      <ListMusicMultiAdd ref={listMusicMultiAddRef} onAdded={hancelExitSelect} />
       <MusicPositionModal ref={musicPositionModalRef}
         onUpdatePosition={(info, postion) => { handleUpdateMusicPosition(postion, info.listId, info.musicInfo, info.selectedList, hancelExitSelect) }} />
       <ListMenu
@@ -156,15 +158,18 @@ export default () => {
         onRemove={info => { hancelExitSelect(); handleRemove(info.listId, info.musicInfo, info.selectedList, hancelExitSelect) }}
         onDislikeMusic={info => { void handleDislikeMusic(info.musicInfo) }}
         onCopyName={info => { handleShare(info.musicInfo) }}
+        onMusicSourceDetail={info => { void handleShowMusicSourceDetail(info.musicInfo) }}
         onAdd={handleAddMusic}
         onMove={handleMoveMusic}
         onEditMetadata={handleEditMetadata}
         onChangePosition={info => musicPositionModalRef.current?.show(info)}
+        onToggleSource={info => musicToggleModalRef.current?.show(info)}
       />
       <MetadataEditModal
         ref={metadataEditTypeRef}
         onUpdate={handleUpdateMetadata}
       />
+      <MusicToggleModal ref={musicToggleModalRef} />
     </View>
   )
 }

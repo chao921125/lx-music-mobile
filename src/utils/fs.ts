@@ -15,6 +15,8 @@ export type {
 
 // export const externalDirectoryPath = RNFS.ExternalDirectoryPath
 
+export const extname = (name: string) => name.lastIndexOf('.') > 0 ? name.substring(name.lastIndexOf('.') + 1) : ''
+
 export const temporaryDirectoryPath = Dirs.CacheDir
 export const externalStorageDirectoryPath = Dirs.SDCardDir
 export const privateStorageDirectoryPath = Dirs.DocumentDir
@@ -43,7 +45,7 @@ export const readFile = async(path: string, encoding?: Encoding) => FileSystem.r
 
 // export const copyFile = async(fromPath: string, toPath: string) => FileSystem.cp(fromPath, toPath)
 
-// export const moveFile = async(fromPath: string, toPath: string) => FileSystem.mv(fromPath, toPath)
+export const moveFile = async(fromPath: string, toPath: string) => FileSystem.mv(fromPath, toPath)
 export const gzipFile = async(fromPath: string, toPath: string) => FileSystem.gzipFile(fromPath, toPath)
 export const unGzipFile = async(fromPath: string, toPath: string) => FileSystem.unGzipFile(fromPath, toPath)
 export const gzipString = async(data: string, encoding?: Encoding) => FileSystem.gzipString(data, encoding)

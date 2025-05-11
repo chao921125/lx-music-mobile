@@ -116,19 +116,23 @@ export const toast = (message: string, duration: 'long' | 'short' = 'short', pos
       break
   }
   let _position
+  let offset: number
   switch (position) {
     case 'top':
       _position = ToastAndroid.TOP
+      offset = 120
       break
     case 'center':
       _position = ToastAndroid.CENTER
+      offset = 0
       break
     case 'bottom':
     default:
       _position = ToastAndroid.BOTTOM
+      offset = 120
       break
   }
-  ToastAndroid.showWithGravity(message, _duration, _position)
+  ToastAndroid.showWithGravityAndOffset(message, _duration, _position, 0, offset)
 }
 
 export const openUrl = async(url: string): Promise<void> => Linking.canOpenURL(url).then(async() => Linking.openURL(url))
@@ -546,12 +550,26 @@ export const cheatTip = async() => {
 
   return tipDialog({
     title: '谨防被骗提示',
-    message: `1. 本项目无微信公众号之类的官方账号，也未在小米、华为、vivo等应用商店发布应用，商店内的“LX Music”、“洛雪音乐”相关的应用全部属于假冒应用，谨防被骗。
-2. 本软件完全无广告且无引流（如需要加群、关注公众号之类才能使用或者升级）的行为，若你使用过程中遇到广告或者引流的信息，则表明你当前运行的软件是第三方修改版。
-3. 目前本项目的原始发布地址只有 GitHub 及 蓝奏网盘 （在设置-关于有说明），其他渠道均为第三方转载发布，可信度请自行鉴别。`,
+    message: `1. 本项目无微信公众号之类的所谓「官方账号」，也未在小米、华为、vivo 等应用商店发布应用，商店内的「LX Music」「洛雪音乐」相关的应用全部属于假冒应用，谨防被骗！\n
+2. 本软件完全无广告且无引流（如需要加群、关注公众号之类才能使用或者升级）的行为，若你使用过程中遇到广告或者引流的信息，则表明你当前运行的软件是第三方修改版。\n
+3. 目前本项目的原始发布地址只有 GitHub，其他渠道均为第三方转载发布，可信度请自行鉴别。`,
     btnText: '我知道了 (Close)',
-    bgClose: false,
+    bgClose: true,
   }).then(() => {
     void saveData(storageDataPrefix.cheatTip, true)
+  })
+}
+
+export const remoteLyricTip = async() => {
+  const isRead = await getData<boolean>(storageDataPrefix.remoteLyricTip)
+  if (isRead) return
+
+  return tipDialog({
+    title: '有点温馨的提示',
+    message: '若你将本功能用于汽车，请记住这个：\n道路千万条，安全第一条！\n道路千万条，安全第一条！！\n道路千万条，安全第一条！！！',
+    btnText: '我知道了 (Close)',
+    bgClose: true,
+  }).then(() => {
+    void saveData(storageDataPrefix.remoteLyricTip, true)
   })
 }

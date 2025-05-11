@@ -48,7 +48,8 @@ export const handleImport = (path: string, position: number) => {
   void readListData(path).then(async listData => {
     if (listData == null) return
     void handleImportListPart(listData, position)
-  }).catch(() => {
+  }).catch((err) => {
+    log.error(err)
     toast(global.i18n.t('setting_backup_part_import_list_tip_error'))
   })
 }
@@ -91,7 +92,7 @@ export const handleSync = (listInfo: LX.List.UserListInfo) => {
   })
 }
 
-const buildLocalMusicInfoByFilePath = (file: FileType): LX.Music.MusicInfoLocal => {
+export const buildLocalMusicInfoByFilePath = (file: FileType): LX.Music.MusicInfoLocal => {
   const index = file.name.lastIndexOf('.')
   return {
     id: file.path,
@@ -108,7 +109,7 @@ const buildLocalMusicInfoByFilePath = (file: FileType): LX.Music.MusicInfoLocal 
     },
   }
 }
-const buildLocalMusicInfo = (filePath: string, metadata: MusicMetadataFull): LX.Music.MusicInfoLocal => {
+export const buildLocalMusicInfo = (filePath: string, metadata: MusicMetadataFull): LX.Music.MusicInfoLocal => {
   return {
     id: filePath,
     name: metadata.name,
